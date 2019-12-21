@@ -30,7 +30,7 @@ ROOT_URLCONF = 'config.urls'
 # WSGI
 WSGI_APPLICATION = 'config.wsgi.application'
 
-# Apps
+# Apps Aplicaciones instaladas por defecto por django
 DJANGO_APPS = [
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -39,14 +39,15 @@ DJANGO_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.admin',
 ]
-
+# aplicaciones de terceros
 THIRD_PARTY_APPS = [
 ]
+# Aplicaciones locales
 LOCAL_APPS = [
 ]
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
-# Passwords
+# Passwords, Agreagamos una nuevo hash de contraseñas "Argon" y lo colocamos al principio
 PASSWORD_HASHERS = [
     'django.contrib.auth.hashers.Argon2PasswordHasher',
     'django.contrib.auth.hashers.PBKDF2PasswordHasher',
