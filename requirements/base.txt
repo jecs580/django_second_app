@@ -5,7 +5,7 @@ pytz==2018.7
 python-slugify==1.2.6
 
 # para imagenes
-Pillow==5.3.0
+Pillow==6.2.0
 
 # Este es conector con postgress
 psycopg2==2.7.4 --no-binary psycopg2
