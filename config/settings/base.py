@@ -44,6 +44,7 @@ DJANGO_APPS = [
 ]
 # aplicaciones de terceros
 THIRD_PARTY_APPS = [
+    'rest_framework',
 ]
 # Aplicaciones locales
 LOCAL_APPS = [
