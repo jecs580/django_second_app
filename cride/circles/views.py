@@ -28,6 +28,7 @@ def create_circle(request):
     """Creacion de circulos"""
     serializer=CreateCircleSerializer(data=request.data)
     serializer.is_valid(raise_exception=True) # Para validar los campos, por defecto no se tiene atributos, si colocas el atributo raise_exception=True, devolvera una respuesta de 400 al cliente, tambien devolvera un json con los errores que ocurrieron.
-    data=serializer.data
-    circle=Circle.objects.create(**data) # Desempaquetara todos las llave y valores que trae data.
+    # data=serializer.data
+    # circle=Circle.objects.create(**data) # Desempaquetara todos las llave y valores que trae data.
+    circle=serializer.save() # Devuelve una instacia del objeto que se creo. Por defecto se ejecuta la funcion create del serializer.
     return Response(CircleSerializer(circle).data) # Response se encargara de convertirlo a Json.
