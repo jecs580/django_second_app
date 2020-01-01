@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 # Serializers
-from cride.users.serializers import (UserLoginSerializer,UserModelSerializer)
+from cride.users.serializers import (UserLoginSerializer,UserModelSerializer,UserSignSerializer)
 
 # Models
 
@@ -23,3 +23,15 @@ class UserLoginAPIView(APIView):
             'access_token':token            
         }
         return Response(data, status=status.HTTP_201_CREATED)
+
+class UserSignUpAPIView(APIView):
+    """Vista para registro de Usuarios"""
+    
+    def post(self,request,*args,**kwargs):
+        """"Maneja la solicitud HTTP POST"""
+        serializer=UserSignSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        #Solo devolvemos el user por que primero el usuario tiene que verificar su email.
+        user=serializer.save()
+        data=UserModelSerializer(user).data
+        return Response(data,status=status.HTTP_201_CREATED)
