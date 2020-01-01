@@ -58,8 +58,8 @@ class UserSignSerializer(serializers.Serializer):
     def create(self,data):
         """Creacion de un nuevo usuario y un perfil"""
         data.pop('password_confirmation')
-        user=User.objects.create_user(**data) # El create_user es la manera mas directa de crear usuarios
-        profile=Profile.objects.create(user=user)
+        user=User.objects.create_user(**data, is_verified=False) # El create_user es la manera mas directa de crear usuarios
+        Profile.objects.create(user=user)
         return user
 
 
@@ -75,6 +75,8 @@ class UserLoginSerializer(serializers.Serializer):
         user=authenticate(username=data['email'], password=data['password']) # data es del tipo diccionario
         if not user:
             raise serializers.ValidationError("Credenciales Invalidas")
+        if not user.is_verified:
+            raise serializers.ValidationError("La cuenta aun no esta verificada")
         self.context['user'] = user # Añadimos al contexto el usuario logado para el metod create
         return data
 
