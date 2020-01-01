@@ -21,7 +21,7 @@ def list_circles(request):
     #     serializer=CircleSerializer(circle)
     #     data.append(serializer.data)
     serializer=CircleSerializer(circles,many=True)
-    return Response(serializer.data)
+    return Response(serializer.data) # El Response por defecto parsea el dato que envias a Json
     # return JsonResponse(data,safe=False); Retorna los datos en Json, el atributo safe =True indica que los datos que se mandaran es un diccionario, si colocas en False, aceptara otros tipos de datos, por defecto safe esta en True.
 @api_view(['POST'])
 def create_circle(request):
