@@ -5,6 +5,8 @@ from django.contrib.auth import authenticate,password_validation
 from django.core.validators import RegexValidator
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
+from django.utils import timezone
+from django.conf import settings
 
 # Django REST Framework
 from rest_framework import serializers
@@ -14,6 +16,10 @@ from rest_framework.validators import UniqueValidator
 # Models
 from cride.users.models import User
 from cride.users.models import Profile
+
+# Utilities
+import jwt
+from datetime import timedelta
 
 # Esto es una manera mas simple de serializar un modelo. En vez de colocar crear campos que queremos de un modelo, simplemente le indicamos a django que modelos usaremos con la subclse Meta. Ojo debes enviar ModelSerializer y no Serializer.
 class UserModelSerializer(serializers.ModelSerializer):
@@ -94,7 +100,14 @@ class UserSignSerializer(serializers.Serializer):
     def gen_verification_token(self,user): 
         """Crea un token JWT que el usuario pueda usar para verificar su cuenta"""
         # El self se utiliza para que la funcion pueda usar los atributos de la clase.
-        return'abc'
+        exp_date=timezone.now()+timedelta(days=3)
+        payload={
+            'user':user.username,
+            'exp':int(exp_date.timestamp()),
+            'type':'email_confirmation' #Creamos una variable que especifique de que es el token, se lo usa cuando tu proyecto genera mas JWT en otras aplicaciones y no queremos que se confundan.
+        }
+        token=jwt.encode(payload,settings.SECRET_KEY,algorithm='HS256')
+        return token.decode() # regresamos el token en cadena
 
 
 class UserLoginSerializer(serializers.Serializer):
