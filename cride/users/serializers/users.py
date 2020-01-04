@@ -123,7 +123,7 @@ class UserLoginSerializer(serializers.Serializer):
         if not user:
             raise serializers.ValidationError("Credenciales Invalidas")
         if not user.is_verified:
-            raise serializers.ValidationError("La cuenta aun no esta verificada")
+            raise serializers.ValidationError("La cuenta aun no esta verificada") # Esto ademas envia un codigo de estado "400" al cliente
         self.context['user'] = user # Añadimos al contexto el usuario logado para el metod create
         return data
 
@@ -133,5 +133,27 @@ class UserLoginSerializer(serializers.Serializer):
         token,created =Token.objects.get_or_create(user=self.context['user']) 
         # Devolvemos un token o lo creamos, se usa este metodo cuando ya tienes algunos usuarios creados y que no tengan un token.Cada ves q nos loguemos el token no cambiara.
         return self.context['user'], token.key 
-        # Retornamos el usuario y 
+        # Retornamos el usuario y el token
 
+class AccountVerificationSerializer(serializers.Serializer):
+    """Serializador de Verificador de cuenta"""
+    token=serializers.CharField()
+    def validate_token(self,data):
+        """Verifica si el token es valido"""
+        try:
+            payload=jwt.decode(data,settings.SECRET_KEY,algorithms=['HS256'])
+        except jwt.ExpiredSignatureError: # En la documentacion nos indica que coloquemos exceptions, pero en los ejemplos nos muestra que podemos obviar el exceptions y simplemente colocar el nombre de la excepcion.
+            raise serializers.ValidationError('El enlace de verificacion ha expirado')
+        except jwt.PyJWTError:
+            raise serializers.ValidationError('Token Invalido')  # Verificaion con las demas expeciones usando la clase base que heredan todas las excepciones.
+        if payload['type']!='email_confirmation':
+            raise serializers.ValidationError('Token Invalido')
+        self.context['payload']=payload
+        return data
+
+    def save(self):
+        """Actualizar el estado verificado del usuario"""
+        payload=self.context['payload']
+        user=User.objects.get(username=payload['user'])
+        user.is_verified=True
+        user.save()
