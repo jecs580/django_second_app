@@ -17,6 +17,12 @@ class Circle(CRideModel):
     about= models.CharField('Descripcion del Circulo', max_length=255)
     picture=models.ImageField(upload_to='circles/pictures',blank=True, null=True)
 
+    members=models.ManyToManyField(
+        'users.User', # Relacionamos circulos con los usuarios
+        through='circles.Membership', # Indicamos el modelo intermedio
+        through_fields=('circle','user') # Especificamos los campos en una tupla que teniamos en el modelo Membership que se relacionaran. Este atributo se lo coloca cuando tengas en el modelo intermedio mas de una referencia a uno de los modelos relacionados, en este caso teniamos a mas de una llamada al modelo User como ForeignKey ('user' y 'ivited_by'), sino colocas esto Django te lo alertara.
+        ) # Este campo solo funcionara si tienes un modelo "circles.Membership" creado.
+
     #Estidisticas
     rides_offered=models.PositiveIntegerField(default=0)
     rides_taken=models.PositiveIntegerField(default=0)
