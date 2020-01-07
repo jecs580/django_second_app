@@ -12,7 +12,7 @@ class CircleModelSerializer(serializers.ModelSerializer):
     class Meta:
         """Clase Meta"""
         model=Circle
-        field=(
+        fields=(
             'id','name','slug_name',
             'about','picture','rides_offered',
             'rides_taken','is_public','is_limited',
