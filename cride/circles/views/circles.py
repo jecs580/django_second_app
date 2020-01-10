@@ -25,7 +25,8 @@ class CircleViewSet(mixins.CreateModelMixin,
     #queryset=Circle.objects.all()   # Datos que usara. Esto solo se coloca si no reescribes el metodo "get_queryset"
     serializer_class= CircleModelSerializer
     # permission_classes=([IsAuthenticated]) Antes de usar get_permissions
-
+    lookup_field='slug_name' # Variable para especificar las busquedas, actualizaciones y eliminar objetos. Si no definimos esta variable,por defecto se colocara con el campo pk.
+    
     def get_queryset(self):
         """Restringe la lista a solo públicos"""
         queryset=Circle.objects.all() # Traemos todos los datos de circles
