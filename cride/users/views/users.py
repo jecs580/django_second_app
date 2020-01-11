@@ -6,6 +6,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.decorators import action
 # Serializers
+
+from cride.circles.serializers import CircleModelSerializer
 from cride.users.serializers import (UserLoginSerializer,
                                     UserModelSerializer,
                                     UserSignSerializer,
@@ -18,7 +20,9 @@ from rest_framework.permissions import (
 )
 from cride.users.permissions import IsAccountOwner
 # Models
-from cride.users.models.users import User
+from cride.users.models.users import User # Importacion por archivo, se podria por modulo siempre y cuando lo tengas definido en el __init__ del directorio models de la app
+from cride.circles.models import Circle # Importacion de tipo modulo, tambien se puede por archivo
+
 class UserViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
     """Conjunto de vistas de Usuarios.
     
@@ -37,6 +41,21 @@ class UserViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
         else:
             permissions=[IsAuthenticated]
         return [permission() for permission in permissions]
+
+    def retrieve(self,request,*args,**kwargs): # No queremos cambiar el comportamiento normal del metodo, solo agregarle una funcionalidad extra.
+        """Agrega datos adicionales a la respuesta"""
+        response=super(UserViewSet,self).retrieve(request,*args,**kwargs) # Primero recuperamos la respuesta que genera el metodo por defecto retrieve.
+        circles=Circle.objects.filter(
+            members=request.user, # Este campo esta definido en circle, y recibe un user
+            membership__is_active=True # Trae las membresias en las que el usuario esta activo
+            )
+        data ={
+            'user':response.data,
+            'circle': CircleModelSerializer(circles, many=True).data # Mandamos los circulos serilizados con many=True por que podria estar en mas de un circulo.
+        }
+        response.data=data
+        return response
+
     @action(detail=False,methods=['post'])
     def signup(self,request): # El nombre es cualquiera, es importante que el nombre del metodo que tenemos aqui  que sea el que queremos en la url. Algo asi users/signup
         """Registro de usuarios"""
