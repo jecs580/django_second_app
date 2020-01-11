@@ -23,7 +23,11 @@ from cride.users.permissions import IsAccountOwner
 from cride.users.models.users import User # Importacion por archivo, se podria por modulo siempre y cuando lo tengas definido en el __init__ del directorio models de la app
 from cride.circles.models import Circle # Importacion de tipo modulo, tambien se puede por archivo
 
-class UserViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
+class UserViewSet(
+    viewsets.GenericViewSet,
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin
+    ):
     """Conjunto de vistas de Usuarios.
     
     Maneja registro de usuarios,inicio de sesion y verficacion de cuenta.
@@ -36,7 +40,7 @@ class UserViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
         """Asigna permisos en función de la acción."""
         if self.action in ['signup','login','verify']:
             permissions=[AllowAny] # No colocamos comillas por que es una clase que se coloca.
-        elif self.action=='retrieve':
+        elif self.action in ['retrieve','update','partial_update']:
             permissions=[IsAuthenticated,IsAccountOwner] # Permitira la vista solo si esta autenticado y el usuario que quiere recuperar es el propietario
         else:
             permissions=[IsAuthenticated]
