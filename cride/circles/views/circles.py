@@ -36,7 +36,7 @@ class CircleViewSet(mixins.CreateModelMixin,
     
     def get_permissions(self):
         """Asigna permisos en función de la acción."""
-        permissions=[IsAuthenticated]
+        permissions=[IsAuthenticated] # No colocamos comillas por que es una clase que se coloca.
         if self.action in ['update','partial_update']:
             permissions.append(IsCircleAdmin) # En caso de que un usuario quiera actualizar un circulo debe ser admin del circulo
         return [permission() for permission in permissions]

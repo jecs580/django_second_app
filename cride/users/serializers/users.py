@@ -66,7 +66,7 @@ class UserSignSerializer(serializers.Serializer):
     def create(self,data):
         """Creacion de un nuevo usuario y un perfil"""
         data.pop('password_confirmation')
-        user=User.objects.create_user(**data, is_verified=False) # El create_user es la manera mas directa de crear usuarios
+        user=User.objects.create_user(**data, is_verified=False,is_client=True) # El create_user es la manera mas directa de crear usuarios
         Profile.objects.create(user=user)
         self.send_confirmation_email(user)
         return user
