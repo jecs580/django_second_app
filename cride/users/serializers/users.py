@@ -21,14 +21,26 @@ from cride.users.models import Profile
 import jwt
 from datetime import timedelta
 
+# Serializers
+from cride.users.serializers.profiles import ProfileModelSerializer
+
 # Esto es una manera mas simple de serializar un modelo. En vez de colocar crear campos que queremos de un modelo, simplemente le indicamos a django que modelos usaremos con la subclse Meta. Ojo debes enviar ModelSerializer y no Serializer.
 class UserModelSerializer(serializers.ModelSerializer):
     """Serializador del modelo de Usuarios"""
 
+    profile=ProfileModelSerializer(read_only=True) # Sobre escribimos el campo perfil para que nos devuelva todos los datos del perfil  por la relacion OneToOneField, por defecto solo traeria el id del perfil. Esto es posible por que profile. El atributo read_only permite que los datos del perfil solo puedan leerse, desde la  PUT or PATCH {{host}}/users/{{user}}/. En el caso de que quisieramos modificar los datos del perfil mandamos los datos desde del perfil al serializer de perfil desde la vista.(Serializers Anidados)
     class Meta:
         """Clase Meta"""
+
         model=User
-        fields=('username','first_name','last_name','email','phone_number')
+        fields=(
+            'username',
+            'first_name',
+            'last_name',
+            'email',
+            'phone_number',
+            'profile' # Campo que se trae por la relacion OneToOneField 
+            )
 
 
 class UserSignSerializer(serializers.Serializer):

@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.decorators import action
 # Serializers
-
+from cride.users.serializers.profiles import ProfileModelSerializer
 from cride.circles.serializers import CircleModelSerializer
 from cride.users.serializers import (UserLoginSerializer,
                                     UserModelSerializer,
@@ -32,6 +32,7 @@ class UserViewSet(
     
     Maneja registro de usuarios,inicio de sesion y verficacion de cuenta.
     """
+    # Esta clase permiti hacer GET, PUT, PATCH para un usuario especifico. 
     # Estas 3 variables son necesarias para el Retrieve. que por defecto vienen con None en GenericViewSet.
     queryset=User.objects.filter(is_active=True, is_client=True) # QuerySet base para usar el minins.
     serializer_class =UserModelSerializer 
@@ -92,6 +93,21 @@ class UserViewSet(
         data={'message':'¡Felicidades, ahora ve a compartir algunos paseos!'}
         return Response(data,status=status.HTTP_200_OK)
 
+    @action(detail=True,methods=['put','patch']) #Mandamos detail=True por que queremos actualizar un modelo a traves de otro modelo desde un path o put que creamos.
+    def profile(self,request,*args,**kwargs): # Esta vista solo se permitira para el dueño de la cuenta.Esta vista tendra un path que sera despues la ruta de actualizar user <path update user>/profile/ para que actualice algo especifico 
+        """Actualiza datos de perfil"""
+        user=self.get_object()
+        profile=user.profile
+        partial=request.method=='PATH'
+        serializer = ProfileModelSerializer(
+            profile,
+            data=request.data,
+            partial=partial # Este campo permite saber al serializer que sera parcial. Por defecto el serializer pensara que una actualizacion total. Para ambas peticiones no nos devolvera error si no mandamos nada, por que ningun dato es requerido
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        data=UserModelSerializer(user).data # Usamos UserModelSerializer por que el serializer tendra un campo llamado profile
+        return Response(data)
 
 # class UserLoginAPIView(APIView):
 #     """"Vista de la API para inicio de sesión del usuario."""
