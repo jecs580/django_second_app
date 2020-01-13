@@ -28,7 +28,7 @@ router.register(
     r'circles/(?P<slug_name>[-a-zA-Z0-9_]+)/members',
     membership_views.MembershipViewSet,
     basename='membership'
-) # Ruta para los miembros de un circulo especifico
+) # Ruta para los miembros de un circulo especifico. El slug_name que se le envia loa manda como un diccionario con la llave de 'slug_name' a eso se le llama kargs.Si estas usando la vista para recuperar un objecto membership, el nombre del miembro seria otro kwargs. que se asigna al diccionario
 urlpatterns=[
     path('', include(router.urls))
 ]
