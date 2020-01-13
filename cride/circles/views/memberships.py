@@ -53,7 +53,12 @@ class MembershipViewSet(
         """Retorna el miembro del círculo utilizando el nombre de usuario del usuario"""
         return get_object_or_404(
             Membership,
-            user__username=self.kwargs['pk'],
+            user__username=self.kwargs['pk'], # Obtenemos el valor de username atravez de la url que enviemos desde un cliente la llave es pk por que para mixin se obtiene un objeto con identificado, pero como el username tambien funciona como indentificador, lo cambiamos, pero el el nombre de la llave es la misma
             circle=self.circle,
             is_active=True
         )
+    
+    def perform_destroy(self,instance):
+        """Desabilita la membresia"""
+        instance.is_active=False # En vez de eliminar al miembro simplemente colocamos el campo is_active a False para que las demas vistas esten bloqueeadas por no tener el permiso.
+        instance.save()

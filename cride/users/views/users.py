@@ -96,7 +96,7 @@ class UserViewSet(
     @action(detail=True,methods=['put','patch']) #Mandamos detail=True por que queremos actualizar un modelo a traves de otro modelo desde un path o put que creamos.
     def profile(self,request,*args,**kwargs): # Esta vista solo se permitira para el dueño de la cuenta.Esta vista tendra un path que sera despues la ruta de actualizar user <path update user>/profile/ para que actualice algo especifico 
         """Actualiza datos de perfil"""
-        user=self.get_object() # Devuelve el usuario que se coloca con su slug_name en la url
+        user=self.get_object() # Devuelve el usuario que se coloca con su username en la url
         profile=user.profile
         partial=request.method=='PATH'
         serializer = ProfileModelSerializer(
