@@ -3,10 +3,12 @@
 # Django REST Framework
 from rest_framework import mixins, viewsets
 from rest_framework.generics import get_object_or_404
+from rest_framework.decorators import action
+from rest_framework.response import Response
 
 # Models
-from cride.circles.models import Circle
-from cride.circles.models import Membership
+from cride.circles.models import Circle,Membership,Invitation
+
 
 # Permissions
 from rest_framework.permissions import IsAuthenticated
@@ -62,3 +64,41 @@ class MembershipViewSet(
         """Desabilita la membresia"""
         instance.is_active=False # En vez de eliminar al miembro simplemente colocamos el campo is_active a False para que las demas vistas esten bloqueeadas por no tener el permiso.
         instance.save()
+
+    @action(detail=True,methods=['get'])
+    def invitations(self,request,*args,**kwargs):
+        """Recuperar el desglose de invitaciones de un miembro
+        
+        Devolverá una lista que contiene todos los miembros 
+        que han usado sus invitaciones y otra lista que contiene 
+        las invitaciones que aún no se han usado.
+        """
+        member=self.get_object() # Obtenemos el objeto de detalle (el miembro)
+        invited_members=Membership.objects.filter(
+            circle=self.circle,
+            invited_by=request.user,
+            is_active=True
+        ) # Trae a los miembro que fueron invitados por el usuario colocado en la url
+        
+        unsed_invitations=Invitation.objects.filter(
+            circle=self.circle,
+            issued_by=request.user,
+            used=False,
+
+        ).values_list('code') # Invitaciones no utilizadas.Colocamos values_list('code') para que nos lista solo los valores de codigo. Esta lista es un poco rara.
+
+        diff=member.remaining_invitations-len(unsed_invitations) # Sacamos la difencia del numero invitaciones que le quedan por usar, contra las invitaciones que envio pero no son usadas. Esto es para generar el codigo de invitaciones. por que por defecto seran el numero maximo.
+        invitations=[x[0] for x in unsed_invitations] # La lista que nos devolvia el unsed_invitations tenian de elementos tuplas. Pero no nosotros solo queremos los codigos, entonces recoremos la lista y la llenamos en otra pero con los los elemento de la tupla.
+        for i in range(0,diff): # recorre el for mietras diff sea mayor a cero. En otras palabras si ya gasto todas sus invitaciones restantes y tiene las invitaciones no son usadas no entrara al for.
+            invitations.append(
+                Invitation.objects.create(
+                    issued_by=request.user,
+                    circle=self.circle
+                ).code # Solo devolvemos el codigo para que se pueda agregar a la lista de strings.
+            )
+            # Este for solo se activara cuando la primera vez que consulte, y cuando se le aumenten un numero de ivitaciones.
+        data={
+            'used_invitations': MembershipModelSerializer(invited_members,many=True).data,
+            'invitations':invitations
+        }
+        return Response(data)
