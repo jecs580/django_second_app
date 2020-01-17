@@ -23,3 +23,15 @@ class IsActiveCircleMember(BasePermission):
         except Membership.DoesNotExist:
             return False
         return True
+
+class IsSelfMember(BasePermission):
+    """Permite acceso solo a miembros propietarios."""
+    def has_permission(self,request,view):
+        """Deje que el permiso de objeto otorgue acceso"""
+        obj=view.get_object()
+        return self.hast_object_permission(request,view, obj)
+
+    def hast_object_permission(self,request,view,obj):
+        """permite acceso solo si el miembro solicitante es el propietario."""
+        return request.user==obj.user # Si el solicitante es la misma persona en la url
+        

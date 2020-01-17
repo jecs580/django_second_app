@@ -1,10 +1,12 @@
 """Serializador de Membresias"""
+ # Django
+from django.utils import timezone
 
 # Django REST Framework
 from rest_framework import serializers
 
 # Models
-from cride.circles.models import Membership
+from cride.circles.models import Membership, Invitation
 
 # Serializers
 from cride.users.serializers import UserModelSerializer
@@ -40,3 +42,77 @@ class MembershipModelSerializer(serializers.ModelSerializer):
             'rides_taken',
             'rides_offered'
         ) # No colocamos joined_at por que al principio de la clase lo colocamos particularmente
+
+class AddMemberSerializer(serializers.Serializer):
+    """Añade miembro serializado.
+    
+    Manejar la adición de un nuevo miembro a un círculo.
+    El objeto circulo debe proporcionarse en el contexto
+    """
+
+    invitation_code  =serializers.CharField(min_length=8)
+    user=serializers.HiddenField(default=serializers.CurrentUserDefault()) # Campo que no se valida en la entrada de usuario, solo se valida de manera interna, ademas podemos agragar un valor por defecto . Este dato es traido gracias que le mandamos el 'request':request(el valor de la llave debe ser exactamente request de otro modo saldra error. ), de esta forma podra obtener mas informacion
+
+     # Validaciones por campo
+    def validate_user(self,data):
+        """Verifique que el usuario no sea miembro."""
+
+        circle=self.context['circle'] # Asignamos el valor que enviamos en el contexto.
+        user=data # data ya es una instancia del objecto User. que fue causada al darle el CurrentDefault()
+        # Ademas no colocamos data['user'] por que la validacion solo trae el user por usar validaciones por objeto.
+        q=Membership.objects.filter(
+            circle=circle,
+            user=user
+        )
+        if q.exists():
+            raise serializers.ValidatorError('El usuario ya es miembro de este circulo')
+        return data
+    def validate_invitation_code(self,data):
+        """Verifica que el código exista y que está relacionado con el círculo."""
+        try:
+            invitation =Invitation.objects.get(
+                code=data,
+                circle=self.context['circle'],
+                used=False
+            )
+        except Invitation.DoesNotExist:
+            raise serializers.ValidationError('Codigo de invitacion invalido')    
+        self.context['invitation']= invitation # Agregamos a nuetro contexto la invitacion valida con todos sus campos. Podriamos seguir usando invitation_code pero no sabemos si es valida, para asegurar esto lo agregamos al contexto.
+        return data
+    
+    # Validacion general
+    def validate(self,data):
+        """ Verifica si el círculo es capaz de aceptar un nuevo miembro."""
+        circle=self.context['circle']
+        if circle.is_limited  and circle.members.count() >= circle.members_limit:  # Si el circulo es limitado y el numero de miembros es mayor o igual al numero limite de miembros ya exedio el limite.
+            raise serializers.ValidationError('EL circulo ha alcanzado su limite de miembros :`()')
+        return data
+
+    def create(self,data):
+        """Crea un nuevo miembro del circulo."""
+        circle=self.context['circle']
+        invitation= self.context['invitation']
+        user=data['user']
+
+        now=timezone.now()
+        
+        # Creacion del Miembro
+        member=Membership.objects.create(
+            user=user,
+            profile=user.profile,
+            circle=circle,
+            invited_by=invitation.issued_by # Traemos al miebro quien lo invito por medio del objeto invitation
+        )
+
+        # Uddate Invitation
+        invitation.used_by=user
+        invitation.used=True
+        invitation.used_at=now
+        invitation.save()
+
+        # Update issuer data
+        issuer =Membership.objects.get(user=invitation.issued_by,circle=circle)
+        issuer.used_invitations +=1 # Actualizamos los datos de invitaciones usadas sumandolas +1 cada vez que se use sus invitaciones de la persona que lo invito
+        issuer.remaining_invitations -=1 # Decrementamos el numero de invitaciones que tiene la persona que lo invito
+        issuer.save()
+        return member
