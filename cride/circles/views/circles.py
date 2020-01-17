@@ -13,6 +13,10 @@ from cride.circles.models import Circle,Membership # Esta llamada es de la forma
 # Serializers
 from cride.circles.serializers import CircleModelSerializer
 
+# Filters
+from rest_framework.filters import SearchFilter,OrderingFilter
+from django_filters.rest_framework import DjangoFilterBackend
+
 # class CircleViewSet(viewsets.ModelViewSet): # El modelViewSet incluye las acciones de listar,crear,recuperar, actualizar,actualizacion parcial y eliminar objetos,hereda de GenericAPIView.
 class CircleViewSet(mixins.CreateModelMixin,
                    mixins.RetrieveModelMixin,
@@ -27,6 +31,20 @@ class CircleViewSet(mixins.CreateModelMixin,
     # permission_classes=([IsAuthenticated]) Antes de usar get_permissions
     lookup_field='slug_name' # Variable para especificar las busquedas, actualizaciones y eliminar objetos. Si no definimos esta variable,por defecto se colocara con el campo pk.
     
+     # Filters.- Estos filtros se aplican despues del filtro que colocamos en el modelo
+
+    filter_backends =[SearchFilter,OrderingFilter,DjangoFilterBackend] # Habilitamos los tipos de filtros que tendrá nuestra vista.
+    search_fields=('slug_name','name') # Campos por los que hara la busqueda.En la url colocamos la cadena a buscar, de esta manera los buscara por cada campo hasta encotrar resultados, si no encuentra ninguno. no devolvera nada.
+    ordering_fields=('rides_offered','rides_taken','name','created','members_limit') # Campos por los que se podra orderan, en la url colocamos el nombre del campo que deseas que se ordene. Por defecto si solo colocamos el nombre lo ordenara de manera descendente (A-Z), siquieres que sea de manera descendente(Z-A) se debe colocar el signo menos antes del campo a buscar en la url
+    ordering=(
+        '-members__count', # Podemos ordenar usando querys, para scar el nro de miembros y mostrarlos desde el que tenga mas hasta el q tenga menos miembros.
+        '-rides_offered',
+        '-rides_taken'
+        )
+    
+    # Usando DjangoFilters
+    filter_fields=('verified','is_limited') # Colocamos campos que contengan un valor especifico.La diferencia con seach_fields es que como llave colocamos el campo a buscar.Algo que mencionar es que los campos Booleanos podemos buscarlos con True - False o 1 - 0
+
     def get_queryset(self):
         """Restringe la lista a solo públicos"""
         queryset=Circle.objects.all() # Traemos todos los datos de circles
