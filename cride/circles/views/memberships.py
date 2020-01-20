@@ -112,7 +112,7 @@ class MembershipViewSet(
         """Maneja la creación de miembros desde el código de invitación."""
         serializer=AddMemberSerializer(
             data=request.data, # Cambiamos los datos recibidos(Json) a un diccionario
-            context={'circle':self.circle,'request':request} # Los serializers tabien pueden recibir otros datos ademas de la data, para esto usamos la variable context, mandamos request para que el serializer pueda saber el usuario de la peticion.
+            context={'circle':self.circle,'request':request} # Los serializers tambien pueden recibir otros datos ademas de la data, para esto usamos la variable context, mandamos request para que el serializer pueda saber el usuario de la peticion.
         )
         serializer.is_valid(raise_exception=True)
         member=serializer.save()
