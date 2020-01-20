@@ -11,6 +11,18 @@ from cride.circles.models import Membership
 from django.utils import timezone
 from datetime import timedelta
 
+class RideModelSerializer(serializers.ModelSerializer):
+    """Serializador para el modelo Ride."""
+
+    class Meta:
+        """Clase Meta."""
+        model=Ride
+        fields='__all__' # Proporciona todos los campos del modelo
+        read_only_fields=(
+            'offered_by',
+            'offered_in',
+            'rating'
+        )
 
 class CreateRideSerializer(serializers.ModelSerializer):
     """Serializador para crear viajes"""
