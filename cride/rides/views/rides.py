@@ -18,6 +18,7 @@ from cride.circles.models import Circle
 # Permissions
 from rest_framework.permissions import IsAuthenticated
 from cride.circles.permissions.memberships import IsActiveCircleMember
+from cride.rides.permissions.rides import IsRideOwner
 
 # Utilities
 from django.utils import timezone
@@ -26,13 +27,14 @@ from datetime import timedelta
 
 class RideViewSet(mixins.CreateModelMixin,
                   mixins.ListModelMixin,
+                  mixins.UpdateModelMixin,
                   viewsets.GenericViewSet
                   ):
 
     """Conjunto de vistas para Viajes"""
 
     # serializer_class = CreateRideSerializer # Este serializador era para todas las acciones. Pero queremos tener para cada accion un serializador diferente.
-    permission_classes = [IsAuthenticated, IsActiveCircleMember]
+    # permission_classes = [IsAuthenticated, IsActiveCircleMember] # Permiso cuando no sobre-escribimos el metodo get_permissions.
     filter_backends=(SearchFilter,OrderingFilter)
     ordering=('departure_date','arrival_date','available_seats') # La manera en como estara ordena inicialmente, si quieres cambiarlo se usa el ordering_fields
     ordering_fields=('departure_date','arriva_date','available_seats') # Campos por los que se podra ordenar, debemos mandar en la peticion el campo y el orden ascendente o descendente con el signo menos encaso de que sea descente.
@@ -43,6 +45,13 @@ class RideViewSet(mixins.CreateModelMixin,
         slug_name = kwargs['slug_name']
         self.circle = get_object_or_404(Circle, slug_name=slug_name)
         return super(RideViewSet, self).dispatch(request, *args, **kwargs)
+
+    def get_permissions(self):
+        """Asigna permisos basados en la accion que realicen."""
+        permissions = [IsAuthenticated, IsActiveCircleMember]
+        if self.action in ['update','partial_update']:
+            permissions.append(IsRideOwner)
+        return [p() for p in permissions] 
 
     def get_serializer_context(self):
         """Agrega circle al contexto de serializador."""
@@ -59,7 +68,7 @@ class RideViewSet(mixins.CreateModelMixin,
     def get_queryset(self):
         """Retorna los viajes del círculo activo."""
         set_value=timezone.now()+timedelta(minutes=10) # Colocamos una fecha desde la fecha actual+ 10 min para que devuelve los viajes que empiezen en esa hora.
-        return self.circle.ride_set.filter(
+        return self.circle.ride_set.filter( # Traemos los viajes del circulo que es enviado en la URL
             departure_date__gte = set_value, # Query que trae las fechas que sean mayor o igual(__gte) a algo 
             is_active=True,
             available_seats__gte=1

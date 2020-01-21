@@ -11,8 +11,15 @@ from cride.circles.models import Membership
 from django.utils import timezone
 from datetime import timedelta
 
+# Serializers
+from cride.users.serializers import UserModelSerializer
+ 
+
 class RideModelSerializer(serializers.ModelSerializer):
     """Serializador para el modelo Ride."""
+    offered_by=UserModelSerializer(read_only=True)
+    offered_in=serializers.StringRelatedField()
+    passengers=UserModelSerializer(read_only=True,many=True)
 
     class Meta:
         """Clase Meta."""
@@ -23,6 +30,12 @@ class RideModelSerializer(serializers.ModelSerializer):
             'offered_in',
             'rating'
         )
+    def update(self,instance,data): # El campo data en la documentacion esta como validate_data, pero podemos llamarlo como querramos.
+        """Permite actualizaciones solo antes de la fecha de salida."""
+        now = timezone.now()
+        if instance.departure_date <= now:
+            raise serializers.ValidationError("Los viajes en curso no se pueden modificar.")
+        return super(RideModelSerializer,self).update(instance,data)
 
 class CreateRideSerializer(serializers.ModelSerializer):
     """Serializador para crear viajes"""
