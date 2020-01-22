@@ -1,15 +1,18 @@
 """ Vista de Viajes"""
 
 # Django REST Framework
-from rest_framework import mixins, viewsets
+from rest_framework import mixins, viewsets,status
 from rest_framework.generics import get_object_or_404
+from rest_framework.decorators import action
+from rest_framework.response import Response
 
 # Filters
 from rest_framework.filters import SearchFilter,OrderingFilter
 
 # Serializers
 from cride.rides.serializers import (CreateRideSerializer,
-                                     RideModelSerializer
+                                     RideModelSerializer,
+                                     JoinRideSerializer
                                     )
 
 # Models
@@ -63,6 +66,8 @@ class RideViewSet(mixins.CreateModelMixin,
         """Retorna un serializador basado en la action."""
         if self.action=='create':
             return CreateRideSerializer
+        if self.action=='update':
+            return JoinRideSerializer
         return RideModelSerializer
 
     def get_queryset(self):
@@ -73,3 +78,18 @@ class RideViewSet(mixins.CreateModelMixin,
             is_active=True,
             available_seats__gte=1
         )
+    
+    @action(detail=True, methods=['post']) # Es de detalle por que a travez de un vieje especifico se ejutara una logica.
+    def join(self,request,*args,**kwargs):
+        """Añade usuario solicitante para viajar."""
+        ride=self.get_object() # Traemos al ride(viaje) que se coloco en la url.
+        serializer=JoinRideSerializer(
+            ride,
+            data={'passenger':request.user.pk}, # Enviamos el id del objeto User.
+            context={'ride':ride, 'circle':self.circle},# Eliminamos los datos que ya venian en el context.¿?
+            partial=True
+        )
+        serializer.is_valid(raise_exception=True) #  Valida los campos que son Enviamos y devueltos verificando su validez, en caso que no sea validos. Al colocar raise_exception=True esto mostrara al cliente los errores que ocurrieron. Desde datos Json.
+        ride=serializer.save()
+        data=RideModelSerializer(ride).data # Mostraramos de nuevo los datos del viaje
+        return Response(data,status=status.HTTP_200_OK) 

@@ -101,7 +101,7 @@ class UserViewSet(
         partial=request.method=='PATH'
         serializer = ProfileModelSerializer(
             profile,
-            data=request.data,
+            data=request.data, # Son los datos recibidos desde el request desde el body
             partial=partial # Este campo permite saber al serializer que sera parcial. Por defecto el serializer pensara que una actualizacion total. Para ambas peticiones no nos devolvera error si no mandamos nada, por que ningun dato es requerido
         )
         serializer.is_valid(raise_exception=True)
