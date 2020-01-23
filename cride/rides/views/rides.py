@@ -21,7 +21,7 @@ from cride.circles.models import Circle
 # Permissions
 from rest_framework.permissions import IsAuthenticated
 from cride.circles.permissions.memberships import IsActiveCircleMember
-from cride.rides.permissions.rides import IsRideOwner
+from cride.rides.permissions.rides import IsRideOwner,IsNotRideOwner
 
 # Utilities
 from django.utils import timezone
@@ -54,6 +54,8 @@ class RideViewSet(mixins.CreateModelMixin,
         permissions = [IsAuthenticated, IsActiveCircleMember]
         if self.action in ['update','partial_update']:
             permissions.append(IsRideOwner)
+        if self.action == 'join':
+            permissions.append(IsNotRideOwner)
         return [p() for p in permissions] 
 
     def get_serializer_context(self):
