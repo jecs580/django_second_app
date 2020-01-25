@@ -3,9 +3,6 @@
 # Django
 from django.contrib.auth import authenticate,password_validation
 from django.core.validators import RegexValidator
-from django.core.mail import EmailMultiAlternatives
-from django.template.loader import render_to_string
-from django.utils import timezone
 from django.conf import settings
 
 # Django REST Framework
@@ -17,12 +14,11 @@ from rest_framework.validators import UniqueValidator
 from cride.users.models import User
 from cride.users.models import Profile
 
-# Utilities
-import jwt
-from datetime import timedelta
-
 # Serializers
 from cride.users.serializers.profiles import ProfileModelSerializer
+
+# Tasks
+from cride.taskapp.tasks import send_confirmation_email
 
 # Esto es una manera mas simple de serializar un modelo. En vez de colocar crear campos que queremos de un modelo, simplemente le indicamos a django que modelos usaremos con la subclse Meta. Ojo debes enviar ModelSerializer y no Serializer.
 class UserModelSerializer(serializers.ModelSerializer):
@@ -80,46 +76,10 @@ class UserSignSerializer(serializers.Serializer):
         data.pop('password_confirmation')
         user=User.objects.create_user(**data, is_verified=False,is_client=True) # El create_user es la manera mas directa de crear usuarios
         Profile.objects.create(user=user)
-        self.send_confirmation_email(user)
+        send_confirmation_email.delay(user_pk=user.pk) # Para que se ejecute nuestro metodo de manera asincrona llamamos al metodo .delay y luego colocamos los parametros que requiere nuestro metodo.
+        # De esta manera la tarea se ejecutara en segundo plano pero las demas lineas continuaran ejecutandose.
         return user
 
-    def send_confirmation_email(self,user):
-        """Envia un enlace de verificación de cuenta a usuario dado
-            Enviando un email al usuario para verificar la cuenta
-        """
-        verification_token=self.gen_verification_token(user)
-        subject='Bienvenido @{}! Verifica tu cuenta para empezar a usar Comparte-Ride'.format(user.username)
-        from_email='Comparte Ride <noreply@comparteride.com>'
-        content = render_to_string(
-            'emails/users/account_verification.html',
-            {'token': verification_token, 'user': user}
-        ) # Esta variable se usara en caso de que el usario no pueda interpretar el contenido html que se le envio, # El metodo render_to_string(), ayuda a no tener otra variable en caso de que no funcione el html
-        
-        # html_content = '<p>This is an <strong>important</strong> message.</p>' # Esta variable era del contenido con html pero con la otra variable matamos 2 pajaros de un tiro.
-
-        msg = EmailMultiAlternatives(
-            subject, 
-            content, 
-            from_email, 
-            [user.email] # Lista de direcciones de correos a enviar
-        ) # El EmailMultiAlternative se utiliza para enviar emails que contengan un contenido de html,
-        msg.attach_alternative(
-            content # En esta variable agregas la variable con el html pero enviamos content, que posee los 2.
-            , "text/html")
-        msg.send()
-        # Usaremos los JWT para enviar la informacion del usuario sin necesidad de guardarlo en la base de datos.
-
-    def gen_verification_token(self,user): 
-        """Crea un token JWT que el usuario pueda usar para verificar su cuenta"""
-        # El self se utiliza para que la funcion pueda usar los atributos de la clase.
-        exp_date=timezone.now()+timedelta(days=3)
-        payload={
-            'user':user.username,
-            'exp':int(exp_date.timestamp()),
-            'type':'email_confirmation' #Creamos una variable que especifique de que es el token, se lo usa cuando tu proyecto genera mas JWT en otras aplicaciones y no queremos que se confundan.
-        }
-        token=jwt.encode(payload,settings.SECRET_KEY,algorithm='HS256')
-        return token.decode() # regresamos el token en cadena
 
 
 class UserLoginSerializer(serializers.Serializer):
