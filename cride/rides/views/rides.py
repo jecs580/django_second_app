@@ -14,7 +14,8 @@ from cride.rides.serializers import (
     CreateRideSerializer,
     RideModelSerializer,
     JoinRideSerializer,
-    EndRideSerializer
+    EndRideSerializer,
+    CreateRideRatingSerializer,
 )
 
 # Models
@@ -75,6 +76,8 @@ class RideViewSet(mixins.CreateModelMixin,
             return JoinRideSerializer
         if self.action=='finish':
             return EndRideSerializer
+        if self.action=='rate':
+            return CreateRideRatingSerializer
         return RideModelSerializer
 
     def get_queryset(self):
@@ -119,4 +122,20 @@ class RideViewSet(mixins.CreateModelMixin,
         serializer.is_valid(raise_exception=True) #  Valida los campos que son Enviamos y devueltos verificando su validez, en caso que no sea validos. Al colocar raise_exception=True esto mostrara al cliente los errores que ocurrieron. Desde datos Json.
         ride=serializer.save()
         data=RideModelSerializer(ride).data # Mostraramos de nuevo los datos del viaje
-        return Response(data,status=status.HTTP_200_OK) 
+        return Response(data,status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'])
+    def rate(self,request,*args,**kwargs):
+        """Califacion de viaje."""
+        ride = self.get_object()
+        context=self.get_serializer_context()
+        context['ride']=ride
+        serializer_class =self.get_serializer_class()
+        serializer=serializer_class(
+            data=request.data,
+            context=context 
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        data=RideModelSerializer(ride).data
+        return Response(data,status=status.HTTP_201_CREATED)
