@@ -11,10 +11,11 @@ import time
 from datetime import timedelta
 
 # Celery
-from celery.decorators import task
+from celery.decorators import task, periodic_task
 
 # Models
 from cride.users.models import User
+from cride.rides.models import Ride
 
 def gen_verification_token(user): 
         """Crea un token JWT que el usuario pueda usar para verificar su cuenta"""
@@ -58,3 +59,20 @@ def send_confirmation_email(user_pk): # Quitamos self del metodo por que ya no e
             , "text/html")
         msg.send()
         # Usaremos los JWT para enviar la informacion del usuario sin necesidad de guardarlo en la base de datos.
+
+
+@periodic_task(name='disable_finished_rides',run_every=timedelta(seconds=5))
+# Esta tarea sera llamada cada 5 segundos
+def disable_finished_rides():
+    """Desactiva viajes terminados.
+    
+    Este metodo servira para desactivar los rides una vez que termine
+    su hora de llegada, esto sera como un soporte para cuando el creador
+    del viaje se olvide desactivar el viaje.
+    """
+    now=timezone.now() 
+    offset= now+timedelta(seconds=5)
+
+    # Actualiza los paseos que ya han terminado // now <= arrival_date <= offset
+    rides= Ride.objects.filter(arrival_date__gte=now, is_active=True,arrival_date__lte=offset)
+    rides.update(is_active=False)
