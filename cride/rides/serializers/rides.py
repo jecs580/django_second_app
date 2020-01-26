@@ -170,7 +170,7 @@ class EndRideSerializer(serializers.ModelSerializer):
     class Meta:
         """Clase Meta."""
         model=Ride
-        fields=('is_active','current_time')
+        fields=('is_active','current_time') # Colocamos a current_time como campos, aunque no sea un campo del modelo, esto es para no perder el dato que es enviado.
     
     def validate_current_time(self,data):
         """Verifique que el viaje haya comenzado."""

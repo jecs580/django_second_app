@@ -115,9 +115,9 @@ class RideViewSet(mixins.CreateModelMixin,
         serializer_class=self.get_serializer_class()
         serializer=serializer_class(
             ride,
-            data={'is_active':False,'current_time':timezone.now()},
+            data={'is_active':False,'current_time':timezone.now()}, # Traemos la fecha actual en la envia el post.
             context=self.get_serializer_context(),
-            partial=True
+            partial=True # Cuando mandamos partial= True logramos solo actualizar campos especificos del modelos, por otro lado tambien podemos enviar otros tipos de datos, pero solo tomara los que estan en el modelos(is_active). Y los actualizara al instancia de ride que enviamos tambien.
         )
         serializer.is_valid(raise_exception=True) #  Valida los campos que son Enviamos y devueltos verificando su validez, en caso que no sea validos. Al colocar raise_exception=True esto mostrara al cliente los errores que ocurrieron. Desde datos Json.
         ride=serializer.save()
