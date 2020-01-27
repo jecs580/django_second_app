@@ -20,6 +20,11 @@ from cride.users.serializers.profiles import ProfileModelSerializer
 # Tasks
 from cride.taskapp.tasks import send_confirmation_email
 
+# Utilities
+import jwt
+import time
+from datetime import timedelta
+
 # Esto es una manera mas simple de serializar un modelo. En vez de colocar crear campos que queremos de un modelo, simplemente le indicamos a django que modelos usaremos con la subclse Meta. Ojo debes enviar ModelSerializer y no Serializer.
 class UserModelSerializer(serializers.ModelSerializer):
     """Serializador del modelo de Usuarios"""

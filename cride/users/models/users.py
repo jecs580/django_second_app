@@ -10,7 +10,7 @@ from cride.utils.models import CRideModel
 class User(CRideModel,AbstractUser):
     """"Modelo de Usuarios
     Extiende de Abstract User de la clase Django, cambiando el valor del campo username por email y agregando campos extras.
-    """
+    """ 
     email = models.EmailField('direccion de correo', unique=True, error_messages={'unique':'Ya existe un usuario con el correo electronico'}) # El atributo "error_message" crea mensajes de error en el caso de ocurra un error acerca de los otros atributos del campo
 
     phone_regex=RegexValidator(

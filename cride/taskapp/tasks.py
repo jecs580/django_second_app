@@ -61,7 +61,7 @@ def send_confirmation_email(user_pk): # Quitamos self del metodo por que ya no e
         # Usaremos los JWT para enviar la informacion del usuario sin necesidad de guardarlo en la base de datos.
 
 
-@periodic_task(name='disable_finished_rides',run_every=timedelta(seconds=5))
+@periodic_task(name='disable_finished_rides',run_every=timedelta(minutes=5))
 # Esta tarea sera llamada cada 5 segundos
 def disable_finished_rides():
     """Desactiva viajes terminados.

@@ -3,7 +3,7 @@
  # Django
 from django.contrib import admin
 
-#Models
+# Models
 from cride.circles.models import Circle
 
 @admin.register(Circle)
