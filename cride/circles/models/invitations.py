@@ -9,6 +9,8 @@ from cride.utils.models import CRideModel
 # Manager
 from cride.circles.managers import InvitationManager
 
+# Una vez ejecutado el test, django destruira la base de datos de prueba.
+
 class Invitation(CRideModel,models.Model):
     """Invitacion de Circulo
 
