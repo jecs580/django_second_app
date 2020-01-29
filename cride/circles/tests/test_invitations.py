@@ -149,6 +149,5 @@ class MemberInvitationsAPITestCase(APITestCase):
         # Verifica que se hayan creado nuevas invitaciones
         invitations=Invitation.objects.filter(issued_by=self.user)
         self.assertEqual(invitations.count(),self.membership.remaining_invitations) # Comparamos que el numero de datos encontrados sea igual al numero de invitaciones que le quedan al usuario.
-        import pdb ; pdb.set_trace()
         for invitation in invitations:
             self.assertIn(invitation.code,request.data['invitations'])
