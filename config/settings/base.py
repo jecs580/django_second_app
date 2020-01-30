@@ -31,7 +31,7 @@ ROOT_URLCONF = 'config.urls'
 WSGI_APPLICATION = 'config.wsgi.application'
 
 # Usuarios y Autenticacion
-AUTH_USER_MODEL='users.User'
+AUTH_USER_MODEL = 'users.User'
 
 # Apps Aplicaciones instaladas por defecto por django
 DJANGO_APPS = [
@@ -164,7 +164,7 @@ CELERYD_TASK_SOFT_TIME_LIMIT = 60
 REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
-        'rest_framework.renderers.BrowsableAPIRenderer', # Para poder usar la API desde el navegador.
+        'rest_framework.renderers.BrowsableAPIRenderer',  # Para poder usar la API desde el navegador.
     ],
     # Autenticacion por el token que creamos
     'DEFAULT_AUTHENTICATION_CLASSES': [
