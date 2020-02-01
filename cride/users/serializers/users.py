@@ -14,6 +14,9 @@ from rest_framework.validators import UniqueValidator
 from cride.users.models import User
 from cride.users.models import Profile
 
+# Utilities
+import jwt
+
 # Serializers
 from cride.users.serializers.profiles import ProfileModelSerializer
 

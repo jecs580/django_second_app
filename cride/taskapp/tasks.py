@@ -33,9 +33,6 @@ def send_confirmation_email(user_pk): # Quitamos self del metodo por que ya no e
         """Envia un enlace de verificación de cuenta a usuario dado
             Enviando un email al usuario para verificar la cuenta
         """
-        for i in range(30):
-            time.sleep(1)
-            print("Durmiendo zZZ")
         user = User.objects.get(pk=user_pk) # Obtenemos el usuario por su pk
         verification_token=gen_verification_token(user)
         subject='Bienvenido @{}! Verifica tu cuenta para empezar a usar Comparte-Ride'.format(user.username)
