@@ -28,4 +28,3 @@ class CeleryAppConfig(AppConfig):
         app.autodiscover_tasks(lambda: installed_apps, force=True)
 
 # Aqui colocamos nuestras tareas asincronas
-
