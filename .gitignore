@@ -276,4 +276,6 @@ cride/media/
 .ipython/
 .env
 .envs/*
-!.envs/.local/
+
+# Queremos que no ignore la ruta de las variables de entorno de local
+!.envs/.local/ 
